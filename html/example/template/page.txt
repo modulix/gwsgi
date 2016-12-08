@@ -1,0 +1,2 @@
+{% for item in environ %}{{ item }}={{ environ[item] }}
+{% endfor %}

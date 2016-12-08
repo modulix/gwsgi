@@ -2,7 +2,7 @@
 {% block body %}
 	<ul>
 	{% for item in environ %}
-		<li>{{ item }}</li>
+		<li>{{ item }}: {{ environ[item] }}</li>
 	{% endfor %}
 	</ul>
 {% endblock %}

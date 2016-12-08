@@ -3,7 +3,7 @@ WSGI Server
 
 This Python server is designed to be run as system service with a httpd frontend.
 
-This server, compatible with Python2 and Python3 use gevent lib.
+This server is compatible with Python2 and Python3 and use gevent lib.
 ## Installation
 First, you need to copy bin directory files to a new directory (/var/www/bin in this doc).
 ### Daemon Home
@@ -21,7 +21,7 @@ If you want to have a look on example of usage, you can copy files from html dir
     /var/www/htdocs/example/jinja.py (use template with jinja)
 
 ## Setup system services
-### Nginx config
+### HTTPD config
 After, you need to add a server definition to your httpd server, have a look on contrib directory for examples.
 
 ### Init file
