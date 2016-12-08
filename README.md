@@ -5,23 +5,24 @@ This Python server is designed to be run as system service with a httpd frontend
 
 This server, compatible with Python2 and Python3 use gevent lib.
 ## Installation
-First, you need to copy bin directory files in a directory to which nginx have access (/var/www/bin in this doc).
+First, you need to copy bin directory files to a new directory (/var/www/bin in this doc).
 ### Daemon Home
-    /var/www/wsgi/gwsgi.py
-    /var/www/wsgi/config.py
-    /var/www/wsgi/UnixDaemon.py
+    /var/www/bin/gwsgi.py
+    /var/www/bin/config.py
+    /var/www/bin/UnixDaemon.py
 
-Edit /var/www/bin/config.py file to change parameters if needed.
+Review /var/www/bin/config.py file and change parameters if needed.
 ### HTML_DIR
 If you want to have a look on example of usage, you can copy files from html directory to your htdocs dir (/var/www/html in this doc).
 
     /var/www/htdocs/index.py (default site index)
-    /var/www/htdocs/env.py (display env variables)
-    /var/www/htdocs/exemple/* (usage exemples)
+    /var/www/htdocs/example/* (usage examples)
+    /var/www/htdocs/example/env.py (display env variables)
+    /var/www/htdocs/example/jinja.py (use template with jinja)
 
 ## Setup system services
 ### Nginx config
-After, you need to add a server definition to your nginx server, have a look on contrib/nginx.conf file for example.
+After, you need to add a server definition to your httpd server, have a look on contrib directory for examples.
 
 ### Init file
 You need also to create a new service init file and enable this new gwsgi service.

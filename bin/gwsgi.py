@@ -100,6 +100,7 @@ if __name__ == "__main__":
     config.PID_FILE = args.pidfile
     config.LOG_FILE = args.logfile
     sys.path.insert(0, config.HTML_DIR)
+    os.chdir(config.HTML_DIR)
     service = GWSGIServer(config)
     service.start()
     sys.exit()
