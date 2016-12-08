@@ -19,10 +19,18 @@ def index(environ, response):
         </header>
         <body>
             <h1>gwsgi:index</h1>
+            <h2>Examples</h2>
+            <h3>env.py</h3>
             <ul>
-                <li><a href="../env/index.txt?a=aaa&b=bbbb&c=ccccc">env.txt</a></li>
-                <li><a href="../env/index.html?a=aaa&b=bbbb&c=ccccc">env.html</a></li>
-                <li><a href="../env/index.json?a=aaa&b=bbbb&c=ccccc">env.json</a></li>
+                <li><a href="example/env/index.txt?a=aaa&b=bbbb&c=ccccc">env.txt</a></li>
+                <li><a href="example/env/index.html?a=aaa&b=bbbb&c=ccccc">env.html</a></li>
+                <li><a href="example/env/index.json?a=aaa&b=bbbb&c=ccccc">env.json</a></li>
+            </ul>
+            <h3>jinja.py</h3>
+            <ul>
+                <li><a href="example/jinja/index.txt?a=aaa&b=bbbb&c=ccccc">jinja.txt</a></li>
+                <li><a href="example/jinja/index.html?a=aaa&b=bbbb&c=ccccc">jinja.html</a></li>
+                <li><a href="example/jinja/index.json?a=aaa&b=bbbb&c=ccccc">jinja.json</a></li>
             </ul>
         </body>
     </html>

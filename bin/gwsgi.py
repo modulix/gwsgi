@@ -80,9 +80,7 @@ class GWSGIServer(UnixDaemon):
                 env = dict(environ)
                 env.update(self.globales)
                 output = getattr(module, methode)(env, response)
-            #except AttributeError:
-            #except TypeError:
-            except:
+            except(AttributeError, TypeError):
                 response("404", [("Content-type", "text/plain")])
                 output = [b"Not found"]
         else:
