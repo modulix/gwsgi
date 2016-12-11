@@ -5,6 +5,7 @@
 import os
 import sys
 import signal
+import json
 import gevent
 from gevent.pywsgi import WSGIServer
 from gevent.pywsgi import WSGIHandler
@@ -13,6 +14,7 @@ from datetime import datetime
 import importlib
 import logging
 import argparse
+
 try:
     # Python 3
     from urllib.parse import parse_qs
@@ -33,8 +35,10 @@ class GWSGIServer(UnixDaemon):
         self.logger = logging.getLogger()
         self.conf = conf
         gevent.signal(signal.SIGQUIT, gevent.kill)
+        os.chdir(self.conf.HTML_DIR)
         # Persistant variables
-        self.globales = {"gwsgi_count": 0}
+        self.globales = {"wsgi_count": 0}
+        self.mime = json.load(open(os.path.join(self.conf.BIN_DIR, "Content-type.json"), "r"))
     def run(self):
         pool = Pool(self.conf.MAX_CLIENTS)
         self.logger.info("gwsgi server is running at http://%s:%s/" % (self.conf.SERVER, self.conf.PORT))
@@ -42,8 +46,8 @@ class GWSGIServer(UnixDaemon):
         wsgi.serve_forever()
     def handle_wsgi(self, environ, response):
         assert environ
-        sem = gevent.lock.Semaphore()
-        self.globales["gwsgi_count"] += 1
+        #sem = gevent.lock.Semaphore()
+        self.globales["wsgi_count"] += 1
         if environ["PATH_INFO"][-1] == "/":
             path_info = os.path.join(environ["PATH_INFO"][1:], self.conf.DEFAULT_INDEX)
         else:
@@ -62,31 +66,46 @@ class GWSGIServer(UnixDaemon):
             methode = self.conf.DEFAULT_METHOD
             filename = os.path.join(self.conf.HTML_DIR, filename + ".py")
         self.logger.debug("gwsgi:%s:%s:%s=%s:%s(%s)", environ["PATH_INFO"], path_info, filename, module, methode, mime_type)
-        if "gwsgi_" + environ["REQUEST_METHOD"] in self.globales:
-            self.globales["gwsgi_" + environ["REQUEST_METHOD"]] += 1
+        if "wsgi_" + environ["REQUEST_METHOD"] in self.globales:
+            self.globales["wsgi_" + environ["REQUEST_METHOD"]] += 1
         else:
-            self.globales["gwsgi_" + environ["REQUEST_METHOD"]] = 1
+            self.globales["wsgi_" + environ["REQUEST_METHOD"]] = 1
         if "HTTP_X_REAL_IP" in environ:
-            self.globales["gwsgi_ip"] = environ["HTTP_X_REAL_IP"]
+            self.globales["wsgi_ip"] = environ["HTTP_X_REAL_IP"]
+        elif "HTTP_X_FORWARDED_FOR" in environ:
+            self.globales["wsgi_ip"] = environ["HTTP_X_FORWARDED_FOR"]
         else:
-            self.globales["gwsgi_ip"] = environ["REMOTE_ADDR"]
-        if os.path.isfile(filename) and methode[0:1] != "_":
-            module = importlib.import_module(module)
+            self.globales["wsgi_ip"] = environ["REMOTE_ADDR"]
+        if os.path.isfile(filename) and methode[0:1] != "_" and mime_type in self.mime:
             args = {}
             args = parse_qs(environ["QUERY_STRING"])
-            self.globales["gwsgi_query"] = args
-            self.globales["gwsgi_mime"] = mime_type
+            self.globales["wsgi_query"] = args
+            self.globales["wsgi_mime"] = mime_type
+            self.globales["wsgi_header"] = [("Content-type", self.mime[mime_type])]
+            self.globales["wsgi_status"] = "200"
+            # Reading input data
+            if environ["REQUEST_METHOD"] != "GET" and "wsgi.input" in environ:
+                data_input = environ["wsgi.input"].read().decode("utf-8")
+                if data_input:
+                    try:
+                        self.globales["wsgi_data"] = json.loads(data_input)
+                    except:
+                        self.globales["wsgi_data"] = data_input
+            env = dict(environ)
+            env.update(self.globales)
             try:
-                env = dict(environ)
-                env.update(self.globales)
-                output = getattr(module, methode)(env, response)
+                module = importlib.import_module(module)
+                output = getattr(module, methode)(env)
+                response(self.globales["wsgi_status"],self.globales["wsgi_header"])
+            #except AttributeError:
             except(AttributeError, TypeError):
-                response("404", [("Content-type", "text/plain")])
+                response("404", [("Content-type", self.mime["txt"])])
                 output = [b"Not found"]
         else:
-            response("404", [("Content-type", "text/plain")])
+            response("404", [("Content-type", self.mime["txt"])])
             output = [b"Not found"]
         return(output)
+
 if __name__ == "__main__":
     import config
     argparser = argparse.ArgumentParser(prog='gwsgi')
@@ -99,8 +118,8 @@ if __name__ == "__main__":
         print("gwsgi:(%s)" % args)
     config.PID_FILE = args.pidfile
     config.LOG_FILE = args.logfile
+    config.BIN_DIR = os.path.dirname(os.path.abspath(__file__))
     sys.path.insert(0, config.HTML_DIR)
-    os.chdir(config.HTML_DIR)
     service = GWSGIServer(config)
     service.start()
     sys.exit()

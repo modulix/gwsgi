@@ -4,14 +4,9 @@
 import json
 import logging
 
-def index(environ, response):
+def index(environ):
     logger = logging.getLogger()
     logger.debug("index.index(%s)", environ)
-    status = "200"
-    # This page is available only in HTML format
-    response_headers = [("Content-type", "text/html")]
-    logger.info("index.index(status=%s,response_headers=%s)", status, response_headers)
-    response(status, response_headers)
     output = """
     <html>
         <header>
@@ -38,9 +33,7 @@ def index(environ, response):
     return([output.encode("utf-8")])
 
 # To be able also to test from bash for debug purpose
-def display(status,header):
-    print(status,header)
+# REQUEST_METHOD=GET wsgi_mime=txt ./index.py
 if __name__ == "__main__":
     import os
-    result = index(os.environ, display)
-    print(result)
+    print(index(os.environ))
