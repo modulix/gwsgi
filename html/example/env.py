@@ -8,15 +8,14 @@ def index(environ):
     logger = logging.getLogger()
     logger.debug("env.index(%s)", environ)
     if environ["wsgi_mime"] == "json":
-        output = {"ENVIRON": environ}
-        return([str(output).encode("utf-8")])
-        #return([json.dumps(output).encode("utf-8")])
+        return([str(environ).encode("utf-8")])
+        #return([json.dumps(environ).encode("utf-8")])
     elif environ["wsgi_mime"] == "html":
-        output = ""
         tbl = []
         for value in environ:
-            tbl.append("%s=%s" % (value,environ[value]))
+            tbl.append("%s = %s" % (value,environ[value]))
         tbl = sorted(tbl)
+        output = ""
         for it in tbl:
             output += "<li>" + it + "</li>"
         output = "<ul>" + output + "</ul>"
@@ -31,11 +30,13 @@ def index(environ):
     else:
         environ["wsgi_status"] = "404"
         environ["wsgi_header"] = [("Content-type", "text/plain")]
-        output = "Sorry, the requested MIME type(%s) is not managed..." % environ["wsgi_mime"]
+        output = "Sorry, the requested MIME type(%s) is not available..." % environ["wsgi_mime"]
         return([output.encode("utf-8")])
 
-# REQUEST_METHOD=GET wsgi_mime=txt ./env.py
+# To use directly from bash, you need to cd $HTTP_DIR and try:
+# REQUEST_METHOD=GET wsgi_mime=txt ./example/env.py
 if __name__ == "__main__":
-    import os, sys
-    result = index(os.environ)
-    print(result)
+    import sys
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    print(index(os.environ))
+

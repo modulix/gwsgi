@@ -35,11 +35,11 @@ class GWSGIServer(UnixDaemon):
         self.logger = logging.getLogger()
         self.conf = conf
         gevent.signal(signal.SIGQUIT, gevent.kill)
-        os.chdir(self.conf.HTML_DIR)
         # Persistant variables
         self.globales = {"wsgi_count": 0}
         self.mime = json.load(open(os.path.join(self.conf.BIN_DIR, "Content-type.json"), "r"))
     def run(self):
+        os.chdir(self.conf.HTML_DIR)
         pool = Pool(self.conf.MAX_CLIENTS)
         self.logger.info("gwsgi server is running at http://%s:%s/" % (self.conf.SERVER, self.conf.PORT))
         wsgi = WSGIServer((self.conf.SERVER, self.conf.PORT), self.handle_wsgi, spawn=pool, handler_class=WSGIHandler)
@@ -96,7 +96,8 @@ class GWSGIServer(UnixDaemon):
             try:
                 module = importlib.import_module(module)
                 output = getattr(module, methode)(env)
-                response(self.globales["wsgi_status"],self.globales["wsgi_header"])
+                self.logger.debug("gwsgi:%s:%s", env["wsgi_status"], env["wsgi_header"])
+                response(env["wsgi_status"], env["wsgi_header"])
             #except AttributeError:
             except(AttributeError, TypeError):
                 response("404", [("Content-type", self.mime["txt"])])
