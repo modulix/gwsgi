@@ -27,7 +27,7 @@ from UnixDaemon import UnixDaemon
 
 class GWSGIServer(UnixDaemon):
     def __init__(self, conf):
-        super(GWSGIServer, self).__init__(conf.PID_FILE, conf.LOG_FILE)
+        super(GWSGIServer, self).__init__(conf.PID_FILE, conf.ERR_FILE, conf.ERR_FILE)
         if conf.DEBUG:
             logging.basicConfig(filename = conf.LOG_FILE, level = logging.DEBUG, format = conf.LOG_FORMAT, datefmt = "%Y-%m-%d %H:%M:%S")
         else:
@@ -79,6 +79,10 @@ class GWSGIServer(UnixDaemon):
         if os.path.isfile(filename) and methode[0:1] != "_" and mime_type in self.mime:
             args = {}
             args = parse_qs(environ["QUERY_STRING"])
+            # Removing arrays when element count = 1...
+            for arg in args:
+                if len(args[arg]) == 1:
+                    args[arg] = args[arg][0]
             self.globales["wsgi_query"] = args
             self.globales["wsgi_mime"] = mime_type
             self.globales["wsgi_header"] = [("Content-type", self.mime[mime_type])]
@@ -113,12 +117,14 @@ if __name__ == "__main__":
     argparser.add_argument("--debug", action="store_true", help="Enable more verbose logging")
     argparser.add_argument("--pidfile", action="store", help="PID file", dest="pidfile", default=config.PID_FILE)
     argparser.add_argument("--logfile", action="store", help="Log file", dest="logfile", default=config.LOG_FILE)
+    argparser.add_argument("--errfile", action="store", help="Error file", dest="errfile", default=config.ERR_FILE)
     args = argparser.parse_args()
     if args.debug:
         config.DEBUG = args.debug
         print("gwsgi:(%s)" % args)
     config.PID_FILE = args.pidfile
     config.LOG_FILE = args.logfile
+    config.ERR_FILE = args.errfile
     config.BIN_DIR = os.path.dirname(os.path.abspath(__file__))
     sys.path.insert(0, config.HTML_DIR)
     service = GWSGIServer(config)

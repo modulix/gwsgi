@@ -9,11 +9,11 @@ class UnixDaemon(object):
     """
     Use this class to create a daemon on Unix system
     """
-    def __init__(self, pidfile, logfile):
+    def __init__(self, pidfile, logfile, errfile):
         self.pidfile = pidfile
         self.stdin = "/dev/null"
         self.stdout = logfile
-        self.stderr = logfile
+        self.stderr = errfile
 
     def daemonize(self):
         """
@@ -88,5 +88,6 @@ class UnixDaemon(object):
     def restart(self):
         self.stop()
         self.start()
+
     def run(self, *args):
         print("You have to override this method...")
