@@ -27,21 +27,24 @@ from UnixDaemon import UnixDaemon
 
 class GWSGIServer(UnixDaemon):
     def __init__(self, conf):
-        super(GWSGIServer, self).__init__(conf.PID_FILE, conf.ERR_FILE, conf.ERR_FILE)
+        # gevent already logs access to stderr, so switching stdout/stderr
+        super(GWSGIServer, self).__init__(conf.PID_FILE, conf.ERR_FILE, conf.LOG_FILE)
         if conf.DEBUG:
-            logging.basicConfig(filename = conf.LOG_FILE, level = logging.DEBUG, format = conf.LOG_FORMAT, datefmt = "%Y-%m-%d %H:%M:%S")
+            self.loglevel = logging.DEBUG
         else:
-            logging.basicConfig(filename = conf.LOG_FILE, level = logging.INFO, format = conf.LOG_FORMAT, datefmt = "%Y-%m-%d %H:%M:%S")
+            self.loglevel = logging.INFO
+        logging.basicConfig(filename = conf.ERR_FILE, level = self.loglevel, format = conf.LOG_FORMAT, datefmt = "%Y-%m-%d %H:%M:%S")
         self.logger = logging.getLogger()
         self.conf = conf
         gevent.signal(signal.SIGQUIT, gevent.kill)
-        # Persistant variables
-        self.globales = {"wsgi_count": 0}
+        # Loading default MIME types formats
         self.mime = json.load(open(os.path.join(self.conf.BIN_DIR, "Content-type.json"), "r"))
+        # Creating persistant variables
+        self.globales = {"wsgi_count": 0}
     def run(self):
         os.chdir(self.conf.HTML_DIR)
         pool = Pool(self.conf.MAX_CLIENTS)
-        self.logger.info("gwsgi server is running at http://%s:%s/" % (self.conf.SERVER, self.conf.PORT))
+        self.logger.info("gwsgi server starts running at http://%s:%s/" % (self.conf.SERVER, self.conf.PORT))
         wsgi = WSGIServer((self.conf.SERVER, self.conf.PORT), self.handle_wsgi, spawn=pool, handler_class=WSGIHandler)
         wsgi.serve_forever()
     def handle_wsgi(self, environ, response):

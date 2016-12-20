@@ -43,7 +43,8 @@ class UnixDaemon(object):
             fd.write("%s\n" % pid)
             fd.close()
         else:
-            print("%s: PID file creation failed..." % self.pidfile)
+            message = "%s: PID file creation failed...\n" % self.pidfile
+            sys.stderr.write(message)
             sys.exit(-1)
         atexit.register(self.delpid)
 
@@ -61,8 +62,8 @@ class UnixDaemon(object):
         except:
             pid = None
         if pid:
-            message = "%s file exist...(exiting)\n"
-            sys.stderr.write(message % self.pidfile)
+            message = "%s file exist...(exiting)\n" % self.pidfile
+            sys.stderr.write(message)
             sys.exit(1)
         # Starting the daemon
         self.daemonize()
