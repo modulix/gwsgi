@@ -1,12 +1,44 @@
 <html>
-	{% block html_header %}
 	<head>
 		<title>{{ title }}</title>
 		<meta charset="UTF-8">
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<!-- <link rel="stylesheet" href="/static/css/spectre.css"> -->
+		<link rel="stylesheet" href="/static/css/foundation.min.css">
+		<link href="/static/css/foundation-icons.css" rel="stylesheet" type="text/css">
+		<script src="/static/js/jquery-2.1.4.min.js"></script>
+	{% block html_header %}{% endblock %}
 	</head>
-	{% endblock %}
-	{% block body %}
 	<body>
+	<form action=".">
+		<header>
+		{% block header %}{% endblock %}
+		</header>
+		{% block body %}
+		<!-- CONTENT -->
+		{% endblock %}
+		<footer>
+		{% block footer %}
+		<div class="row expanded">
+		<div class="medium-6 columns">
+		<ul class="menu">
+			<li><a href="#">Legal</a></li>
+			<li><a href="#">Partners</a></li>
+			<li><a href="#">Contact</a></li>
+		</ul>
+		</div>
+		<div class="medium-6 columns">
+			<ul class="menu align-right">
+				<li class="menu-text">© 2016 modulix</li>
+			</ul>
+		</div>
+		</div>
+		{% endblock %}
+		</footer>
+		<script src="/static/js/foundation.js"></script>
+		{% block scripts %}
+		{% endblock %}
+	</form>
 	</body>
-	{% endblock %}
 </html>

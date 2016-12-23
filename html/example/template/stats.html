@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block header %}
+	<div class="top-bar">
+		<div class="top-bar-left">
+			<ul class="menu">
+				<li><a href="#">Lang</a></li>
+				<li><a href="#">Login</a></li>
+			</ul>
+		</div>
+		<div class="top-bar-right">
+			<ul class="menu">
+				<li><input placeholder="Search" type="search" name="search"></li>
+				<li><button type="submit" class="button">Search</button></li>
+			</ul>
+		</div>
+	</div>
+{% endblock %}
+{% block body %}
+	<div class="row">
+		<h1>gwsgi:database(couchdb)</h1>
+	</div>
+	<div class="row">
+		<div class="medium-12 columns">
+			<label>Choose period to display:
+				<select name="m_year" id="menu_year" onchange="this.form.submit()">
+					{% for menu in menu_years %}
+					<option value="{{ menu.value }}" {% if menu.selected %}selected{%endif %}>{{ menu.txt }}</option>
+					{% endfor %}
+				</select>
+			</label>
+		</div>
+	</div>
+	<div class="row">
+		<div class="medium-8 columns">
+			<p><canvas id="ChartGlobal" width="900" height="450"></canvas></p>
+		</div>
+		<div class="medium-4 columns">
+			{% if stat_pie|length > 1 %}
+			<p><canvas id="ChartBar" width="300" height="200"></canvas></p>
+			<br>
+			<p><canvas id="ChartPie" width="300" height="200"></canvas></p>
+			{% else %}
+			<p><canvas id="ChartBar" width="300" height="400"></canvas></p>
+			{% endif %}
+		</div>
+	</div>
+{% endblock %}
+{% block scripts %}
+	<script src="/static/js/Chart.min.js"></script>
+	<script>
+	$(document).foundation();
+	// Charts.js
+	var tbl_bdcolors = [
+		'rgba(54, 162, 235, 1)',
+		'rgba(153, 102, 255, 1)',
+		'rgba(255,99,132,1)',
+		'rgba(255, 206, 86, 1)',
+		'rgba(255, 255, 255, 1)'
+		];
+	var tbl_bgcolors = [
+		'rgba(54, 162, 235, 0.2)',
+		'rgba(153, 102, 255, 0.2)',
+		'rgba(255, 99, 132, 0.2)',
+		'rgba(255, 206, 86, 0.2)',
+		'rgba(255, 255, 255, 0.2)'
+		];
+	var tbl_bkcolors = [
+			"#36A2EB",
+			"#9966FF",
+			"#FF6384",
+			"#FFCE56",
+			"#333333"
+		];
+	var ctxglobal = $("#ChartGlobal");
+	var options = {
+		options: {
+			scales: {
+				xAxes: [{
+					type: 'linear',
+					position: 'bottom'
+				}]
+			},
+			spanGaps: true
+		}
+	};
+	var data = {
+		labels: [{% for stat in stats_glob %}{% if stat.year == "all" %}{% for mon in stat.name %}'{{ mon }}',{% endfor %}{% endif %}{% endfor %}],
+		datasets: [
+			{% for stat in stats_glob %}
+			{
+			label: "[Primecoin] Blocks {{ stat.year }}",
+			fill: true,
+			lineTension: 0.1,
+			//backgroundColor: "rgba(75,192,192,0.4)",
+			backgroundColor: tbl_bgcolors[{{ loop.index0 }}],
+			borderColor: "rgba(100,100,100,0.1)",
+			borderCapStyle: 'butt',
+			borderDash: [],
+			borderDashOffset: 0.0,
+			borderJoinStyle: 'miter',
+			pointBorderColor: "rgba(75,192,192,1)",
+			pointBackgroundColor: "#fff",
+			pointBorderWidth: 1,
+			pointHoverRadius: 5,
+			pointHoverBackgroundColor: "rgba(75,192,192,1)",
+			pointHoverBorderColor: "rgba(220,220,220,1)",
+			pointHoverBorderWidth: 1,
+			pointRadius: 1,
+			pointHitRadius: 10,
+			data: [{% for val in stat.data %}{% if val != '' %}{{ val }},{% else %},{% endif %}{% endfor %}],
+			spanGaps: true
+			},
+			{% endfor %}
+		]
+	};
+
+	var ChartGlobal = new Chart(ctxglobal, {
+		type: 'line',
+		data: data,
+		options: options
+	});
+	var ctxchartbar = $("#ChartBar");
+	var ChartBar = new Chart(ctxchartbar, {
+		type: 'bar',
+		data: {
+			labels: [{% for stat in stat_month %}'{{ stat.name }}',{% endfor %}],
+			datasets: [
+				{% for pie_year in stat_pie %}
+				{% set year_loop = loop %}
+				{
+				label: '{{ pie_year.year }}',
+				data: [{% for stat in stat_month %}{{ stat.data[year_loop.index0] }},{% endfor %}],
+				backgroundColor: [{% for stat in stat_month %}tbl_bgcolors[{{ year_loop.index0 }}],{% endfor %}],
+				borderColor: [{% for stat in stat_month %}tbl_bdcolors[{{ year_loop.index0 }}],{% endfor %}],
+				borderWidth: 1
+				},
+				{% endfor %}
+				]
+		},
+		options: {
+			scales: {
+				xAxes: [{
+					stacked: true
+				}],
+				yAxes: [{
+					stacked: true,
+					ticks: {
+						beginAtZero:true
+					}
+				}]
+			}
+		}
+	});
+	{% if stat_pie|length > 1 %}
+	var data = {
+		labels: [{% for pie_year in stat_pie %}'{{ pie_year.year }}',{% endfor %}],
+		datasets: [
+			{
+			data: [{% for pie_year in stat_pie %}{{ pie_year.data }},{% endfor %}],
+			backgroundColor: tbl_bkcolors,
+			hoverBackgroundColor: tbl_bkcolors
+			}
+		]
+	};
+	var ctxpie = $("#ChartPie");
+	var ChartPie = new Chart(ctxpie,{
+		type: 'pie',
+		data: data,
+		options: options
+	});
+	{% endif %}
+	</script>
+{% endblock %}

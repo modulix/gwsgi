@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # Python script for GWSGI server
+import sys
 import os
 import json
 import logging
@@ -22,6 +23,5 @@ def index(environ):
 # To use directly from bash, you need to cd $HTTP_DIR and try:
 # REQUEST_METHOD=GET wsgi_mime=txt ./example/jinja.py
 if __name__ == "__main__":
-    import sys
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     print(index(os.environ))
